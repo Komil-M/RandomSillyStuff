@@ -109,23 +109,22 @@ async function refreshCharacters() {
   }
 }
 
-async function refreshCharacterStats() {
-  if (!state.token || !state.activeCharacter || !state.accountName) return;
-  try {
-    const profile = await poeApi.getProfile();
-    state.accountName = profile.name || state.accountName;
-    const list = await poeApi.getCharacters(state.accountName);
-    state.characters = list;
-    const active = list.find((entry) => entry.name === state.activeCharacter);
-    if (active) {
-      const detail = await poeApi.getCharacter(state.accountName, active.name);
-      state.mission = {
-        text: detail.currentArea || detail.currentact || active.lastAreaChange || detail.name,
-        source: 'api',
-      };
-      persistState();
-      sendStateUpdate();
-    }
+  async function refreshCharacterStats() {
+    if (!state.token || !state.activeCharacter || !state.accountName) return;
+    try {
+      const profile = await poeApi.getProfile();
+      state.accountName = profile.name || state.accountName;
+      const list = await poeApi.getCharacters(state.accountName);
+      state.characters = list;
+      const active = list.find((entry) => entry.name === state.activeCharacter);
+      if (active) {
+        state.mission = {
+          text: active.lastAreaChange || 'Mission unknown',
+          source: 'api',
+        };
+        persistState();
+        sendStateUpdate();
+      }
   } catch (error) {
     state.mission = {
       text: `Error: ${error.message || String(error)}`,
@@ -349,4 +348,3 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-

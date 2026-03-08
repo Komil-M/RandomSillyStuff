@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PoE QoL Companion</title>
+    <link rel="stylesheet" href="./renderer.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <header class="topbar">
+        <h1>PoE Quality of Life Overlay</h1>
+        <p>Account link, mission context, and route-driven passive tree overlay.</p>
+      </header>
+
+      <section class="panel">
+        <h2>Account / Session</h2>
+        <div class="grid two">
+          <label>
+            Access Token
+            <input id="tokenInput" type="password" placeholder="Paste PoE bearer token or API token" />
+          </label>
+          <label>
+            Auth Account
+            <input id="accountInput" type="text" placeholder="Account name (optional fallback)" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="saveTokenBtn">Save Token</button>
+          <button id="setAccountBtn">Set Account</button>
+          <button id="authBtn">Open OAuth</button>
+          <button id="refreshBtn">Refresh Characters</button>
+        </div>
+        <div id="accountStatus" class="status muted"></div>
+      </section>
+
+      <section class="panel grid two">
+        <div>
+          <h2>Mission / Character</h2>
+          <div id="accountText" class="pill">Account: unknown</div>
+          <div id="missionText" class="pill">Mission: unknown</div>
+          <div class="subtle">Characters</div>
+          <ul id="characterList"></ul>
+        </div>
+        <div>
+          <h2>Active Character</h2>
+          <div id="activeCharacterText" class="pill">No character selected</div>
+          <div id="activeClassText" class="muted">Class: unknown</div>
+          <div id="overlaySummary" class="muted">Overlay: off</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Guide Linking</h2>
+        <div class="grid two">
+          <label>
+            Guide title
+            <input id="guideTitleInput" type="text" placeholder="My guide" />
+          </label>
+          <label>
+            Guide link (optional)
+            <input id="guideUrlInput" type="text" placeholder="https://..." />
+          </label>
+        </div>
+        <label>
+          Paste guide text / node IDs
+          <textarea id="guideTextInput" rows="4" placeholder="Paste guide text that contains node ids"></textarea>
+        </label>
+        <div class="actions">
+          <button id="addGuideBtn">Import Guide</button>
+        </div>
+        <ul id="guideList"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>Overlay Controls</h2>
+        <label class="inline">
+          <input id="overlayVisible" type="checkbox" checked />
+          Visible
+        </label>
+        <label>
+          Scale
+          <input id="overlayScale" type="range" min="0.4" max="2.0" step="0.05" value="1" />
+          <span id="scaleValue">1.00</span>
+        </label>
+        <div class="grid two">
+          <label>
+            Offset X
+            <input id="overlayOffsetX" type="number" step="1" value="0" />
+          </label>
+          <label>
+            Offset Y
+            <input id="overlayOffsetY" type="number" step="1" value="0" />
+          </label>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Recent Events</h2>
+        <ul id="events"></ul>
+      </section>
+    </main>
+    <script type="module" src="./renderer.js"></script>
+  </body>
+</html>
+

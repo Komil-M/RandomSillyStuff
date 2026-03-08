@@ -1,0 +1,156 @@
+:root {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  --bg: linear-gradient(180deg, #0f1118 0%, #141a29 55%, #1a1f2c 100%);
+  --panel: rgba(16, 22, 36, 0.88);
+  --border: rgba(255, 255, 255, 0.16);
+  --accent: #73d8ff;
+  --accent2: #ff8a65;
+  --text: #f1f6ff;
+  --muted: #a7b1c5;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background: radial-gradient(circle at 10% 20%, #23395f 0%, #101525 40%, #0c1020 100%);
+  background-attachment: fixed;
+}
+
+.layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+h1,
+h2 {
+  margin: 0 0 8px 0;
+}
+
+h1 {
+  font-size: 1.8rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.topbar p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+}
+
+.grid.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+input,
+textarea,
+button {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(6, 10, 18, 0.8);
+  color: var(--text);
+  font-size: 13px;
+  padding: 10px;
+}
+
+button {
+  width: auto;
+  cursor: pointer;
+  background: linear-gradient(120deg, rgba(115, 216, 255, 0.28), rgba(255, 138, 101, 0.2));
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.pill {
+  background: rgba(14, 19, 30, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.subtle {
+  margin: 8px 0;
+  color: var(--muted);
+}
+
+ul {
+  margin: 6px 0;
+  padding-left: 22px;
+}
+
+li {
+  margin: 6px 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.inline {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.status {
+  min-height: 26px;
+  font-size: 13px;
+}
+
+.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.route-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.guide-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+li button {
+  width: auto;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
