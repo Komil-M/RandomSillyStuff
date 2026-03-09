@@ -7,9 +7,37 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "echo \"No build step required for MVP JS version.\""
+    "build": "npm run package",
+    "build:win": "electron-builder --win nsis",
+    "build:portable": "electron-builder --win portable",
+    "package": "electron-builder --win nsis --publish=never",
+    "release": "electron-builder --win nsis --publish=never"
   },
   "dependencies": {
     "electron": "^31.2.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.komil.poe-qol-overlay",
+    "productName": "PoEQoLOverlay",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "${productName}-setup-${version}.exe"
+    }
   }
 }
