@@ -37,6 +37,16 @@ If your environment blocks the installer pipeline, use:
 This creates:
 - `dist/PoEQoLOverlay-win32-x64/PoEQoLOverlay.exe`
 
+## Zero-command start
+
+After one-time build, run:
+
+- Double-click `start-app.bat` to launch the app.
+
+If you ever need to rebuild on this machine:
+
+- Double-click `build-app.bat`
+
 ## Branch used for this project
 
 - `poe-qol-overlay`
