@@ -4,20 +4,21 @@
   "private": true,
   "description": "Path of Exile quality-of-life companion with character dashboard and passive tree overlay.",
   "type": "module",
+  "author": "Komil",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "build": "npm run package",
     "build:win": "electron-builder --win nsis",
     "build:portable": "electron-builder --win portable",
+    "package:raw": "electron-packager . PoEQoLOverlay --platform=win32 --arch=x64 --out=dist --overwrite --no-prune",
     "package": "electron-builder --win nsis --publish=never",
     "release": "electron-builder --win nsis --publish=never"
   },
-  "dependencies": {
-    "electron": "^31.2.0"
-  },
   "devDependencies": {
-    "electron-builder": "^25.1.8"
+    "electron": "^31.2.0",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
   },
   "build": {
     "appId": "com.komil.poe-qol-overlay",
@@ -31,10 +32,13 @@
       "package.json"
     ],
     "win": {
+      "sign": false,
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "artifactName": "${productName}-setup-${version}.exe"

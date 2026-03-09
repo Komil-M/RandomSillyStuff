@@ -30,6 +30,13 @@ To create a portable `.exe` without installer:
 
 - `npm run build:portable`
 
+If your environment blocks the installer pipeline, use:
+
+- `npm run package:raw`
+
+This creates:
+- `dist/PoEQoLOverlay-win32-x64/PoEQoLOverlay.exe`
+
 ## Branch used for this project
 
 - `poe-qol-overlay`
