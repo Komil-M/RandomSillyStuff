@@ -28,6 +28,7 @@ const state = {
   mission: { text: 'Unknown', source: 'idle' },
   guides: [],
   selectedGuideId: '',
+  guideProgress: {},
   overlay: { visible: true, scale: 1, offsetX: 0, offsetY: 0 },
 };
 
@@ -83,29 +84,64 @@ function renderGuides() {
     const row = document.createElement('div');
     row.className = 'route-row';
     const nameWrap = document.createElement('div');
-    nameWrap.innerHTML = `<div>${guide.title || 'Guide'}</div><div class="guide-meta">${guide.nodes?.length || 0} nodes | ${guide.id}</div>`;
+    const totalNodes = Number(guide.nodes?.length || 0);
+    const guideProgress = Number(state.guideProgress?.[guide.id] || 0);
+    const clampedProgress = Math.max(0, Math.min(totalNodes, Number.isFinite(guideProgress) ? guideProgress : 0));
+    nameWrap.innerHTML = `<div>${guide.title || 'Guide'}</div><div class="guide-meta">${totalNodes} nodes | ${clampedProgress}/${totalNodes} done | ${guide.id}</div>`;
     const actions = document.createElement('div');
     const select = document.createElement('button');
     const remove = document.createElement('button');
+    const next = document.createElement('button');
+    const reset = document.createElement('button');
     select.textContent = guide.id === state.selectedGuideId ? 'Active' : 'Use';
     remove.textContent = 'Delete';
+    next.textContent = 'Next';
+    reset.textContent = 'Reset';
     select.disabled = guide.id === state.selectedGuideId;
     select.addEventListener('click', async () => {
       await window.electronAPI.selectGuide(guide.id);
       state.selectedGuideId = guide.id;
+      state.guideProgress[guide.id] = Number(state.guideProgress[guide.id] || 0);
       pushEvent(`Guide selected: ${guide.title || guide.id}`);
       render();
     });
+    next.disabled = clampedProgress >= totalNodes;
+    next.addEventListener('click', async () => {
+      const res = await window.electronAPI.advanceGuideStep(guide.id);
+      if (res?.ok) {
+        state.guideProgress[guide.id] = res.progress;
+        pushEvent(`Guide step advanced: ${guide.title || guide.id} (${res.progress}/${totalNodes})`);
+        render();
+      } else {
+        pushEvent(`Could not advance guide step: ${res?.error || 'Unknown'}`);
+      }
+    });
+    reset.addEventListener('click', async () => {
+      const res = await window.electronAPI.resetGuideProgress(guide.id);
+      if (res?.ok) {
+        state.guideProgress[guide.id] = 0;
+        pushEvent(`Guide reset: ${guide.title || guide.id}`);
+        render();
+      } else {
+        pushEvent(`Could not reset guide: ${res?.error || 'Unknown'}`);
+      }
+    });
+    if (guide.id !== state.selectedGuideId) {
+      next.style.display = 'none';
+      reset.style.display = 'none';
+    }
     remove.addEventListener('click', async () => {
       const res = await window.electronAPI.deleteGuide(guide.id);
       if (res?.ok) {
         if (state.selectedGuideId === guide.id) state.selectedGuideId = '';
+        state.guideProgress = { ...state.guideProgress };
+        delete state.guideProgress[guide.id];
         state.guides = state.guides.filter((entry) => entry.id !== guide.id);
         pushEvent(`Guide deleted: ${guide.title || guide.id}`);
         render();
       }
     });
-    actions.append(select, remove);
+    actions.append(select, next, reset, remove);
     row.append(nameWrap, actions);
     li.appendChild(row);
     els.guideList.appendChild(li);
@@ -266,4 +302,3 @@ async function init() {
 }
 
 init();
-

@@ -28,6 +28,7 @@ let state = {
   mission: { text: 'Unknown', source: 'idle' },
   guides: [],
   selectedGuideId: '',
+  guideProgress: {},
   overlay: {
     visible: true,
     scale: 1,
@@ -53,6 +54,7 @@ function persistState() {
     mission: state.mission,
     guides: state.guides,
     selectedGuideId: state.selectedGuideId,
+    guideProgress: state.guideProgress,
     overlay: state.overlay,
   };
   store.setState(toStore);
@@ -62,8 +64,17 @@ function getSelectedGuide() {
   return state.guides.find((guide) => guide.id === state.selectedGuideId) || null;
 }
 
+function getSelectedGuideProgress() {
+  if (!state.selectedGuideId) return 0;
+  const raw = Number(state.guideProgress?.[state.selectedGuideId]);
+  if (Number.isNaN(raw)) return 0;
+  return Math.max(0, Math.floor(raw));
+}
+
 function getOverlayPayload() {
   const guide = getSelectedGuide();
+  const routeNodes = guide?.nodes || [];
+  const progress = getSelectedGuideProgress();
   return {
     mission: state.mission,
     overlay: state.overlay,
@@ -71,7 +82,12 @@ function getOverlayPayload() {
     activeCharacter: state.activeCharacter,
     accountName: state.accountName,
     selectedGuide: guide,
-    routeNodes: guide?.nodes || [],
+    routeNodes,
+    guideProgress: {
+      selectedGuideId: state.selectedGuideId,
+      currentStep: progress,
+      totalSteps: routeNodes.length,
+    },
     treeData: sampleTree,
   };
 }
@@ -205,8 +221,8 @@ function registerIpc() {
     }
     state.token = token.trim();
     poeApi = new PoeApi(state.token);
-    const result = await refreshCharacters();
-    if (!result.ok) {
+  const result = await refreshCharacters();
+  if (!result.ok) {
       return { ok: false, error: result.error };
     }
     persistState();
@@ -235,6 +251,8 @@ function registerIpc() {
     const parsed = parseGuidePayload(payload);
     if (!parsed.ok) return parsed;
     state.guides.push(parsed.guide);
+    if (!state.guideProgress) state.guideProgress = {};
+    state.guideProgress[parsed.guide.id] = 0;
     if (!state.selectedGuideId) {
       state.selectedGuideId = parsed.guide.id;
     }
@@ -245,9 +263,43 @@ function registerIpc() {
   ipcMain.handle('app:get-guides', async () => ({ guides: state.guides }));
   ipcMain.handle('app:select-guide', async (_e, guideId) => {
     state.selectedGuideId = guideId || '';
+    if (state.selectedGuideId && state.guideProgress[state.selectedGuideId] === undefined) {
+      state.guideProgress[state.selectedGuideId] = 0;
+    }
     persistState();
     sendStateUpdate();
     return { ok: true };
+  });
+  ipcMain.handle('app:advance-guide-step', async (_e, guideId) => {
+    const id = String(guideId || state.selectedGuideId || '').trim();
+    if (!id) {
+      return { ok: false, error: 'No guide selected.' };
+    }
+    const guide = state.guides.find((entry) => entry.id === id);
+    if (!guide) {
+      return { ok: false, error: 'Guide no longer exists.' };
+    }
+    if (!state.guideProgress) state.guideProgress = {};
+    const current = getSelectedGuideProgress();
+    state.guideProgress[id] = Math.min(guide.nodes.length, current + 1);
+    persistState();
+    sendStateUpdate();
+    return { ok: true, progress: state.guideProgress[id], selectedGuideId: id };
+  });
+  ipcMain.handle('app:reset-guide-progress', async (_e, guideId) => {
+    const id = String(guideId || state.selectedGuideId || '').trim();
+    if (!id) {
+      return { ok: false, error: 'No guide selected.' };
+    }
+    const guide = state.guides.find((entry) => entry.id === id);
+    if (!guide) {
+      return { ok: false, error: 'Guide no longer exists.' };
+    }
+    if (!state.guideProgress) state.guideProgress = {};
+    state.guideProgress[id] = 0;
+    persistState();
+    sendStateUpdate();
+    return { ok: true, progress: 0, selectedGuideId: id };
   });
   ipcMain.handle('app:open-auth', async () => {
     if (!CLIENT_ID) {
@@ -296,8 +348,12 @@ function registerIpc() {
     const id = String(guideId || '').trim();
     if (!id) return { ok: false, error: 'Missing guideId.' };
     state.guides = state.guides.filter((g) => g.id !== id);
+    if (state.guideProgress && typeof state.guideProgress[id] !== 'undefined') {
+      delete state.guideProgress[id];
+    }
     if (state.selectedGuideId === id) {
       state.selectedGuideId = state.guides[0]?.id || '';
+      if (!state.guideProgress) state.guideProgress = {};
     }
     persistState();
     sendStateUpdate();
@@ -311,6 +367,7 @@ function hydrateStateFromStore() {
   state = {
     ...state,
     ...saved,
+    guideProgress: saved.guideProgress || {},
     overlay: {
       ...state.overlay,
       ...(saved.overlay || {}),

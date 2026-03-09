@@ -3,6 +3,7 @@
   --edge-highlight: rgba(255, 214, 102, 0.9);
   --node: rgba(120, 140, 190, 0.55);
   --node-active: #7fffd4;
+  --node-complete: #8bff8b;
   --node-route: #a9ff8f;
   --node-current: #ffca3a;
 }
@@ -25,4 +26,3 @@ canvas {
   display: block;
   pointer-events: none;
 }
-

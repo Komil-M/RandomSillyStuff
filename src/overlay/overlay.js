@@ -69,8 +69,19 @@ function drawGrid(bounds) {
 }
 
 function drawTextTopBar(payload) {
-  const { character, mission, selectedGuide, routeNodes } = payload;
-  const text = `Character: ${character?.name || 'N/A'} | Mission: ${mission?.text || 'N/A'} | Guide: ${selectedGuide?.title || 'none'} | Steps: ${routeNodes.length}`;
+  const { character, mission, selectedGuide, routeNodes, guideProgress } = payload;
+  const guide = selectedGuide || {};
+  const totalSteps = routeNodes.length;
+  const currentStep = Number(guideProgress?.currentStep || 0);
+  const completed = Math.max(0, Math.min(totalSteps, Number.isFinite(currentStep) ? currentStep : 0));
+  const nextStep = completed < totalSteps ? completed + 1 : totalSteps;
+  const status =
+    totalSteps > 0
+      ? `${completed}/${totalSteps} done (next #${nextStep}${completed === totalSteps ? ' (complete)' : ''})`
+      : 'No route steps';
+  const text = `Character: ${character?.name || 'N/A'} | Mission: ${
+    mission?.text || 'N/A'
+  } | Guide: ${guide.title || 'none'} | ${status}`;
   context.save();
   context.fillStyle = 'rgba(4,6,20,0.65)';
   context.fillRect(10, 10, Math.min(canvas.width / devicePixelRatioCache - 20, text.length * 7.8 + 80), 28);
@@ -114,8 +125,17 @@ function draw() {
   mapTransform = computeMapTransform(treeData.nodes, bounds);
   const toScreen = (node) => normalizeCoords(node, mapTransform);
 
-  const routeIdSet = new Set((routeNodes || []).map((node) => String(node.id)));
-  const routeOrdered = [...routeNodes].sort((a, b) => (a.order || 0) - (b.order || 0));
+  const guideProgress = payload.guideProgress || {};
+  const rawRouteNodes = Array.isArray(routeNodes) ? routeNodes : [];
+  const routeOrdered = [...rawRouteNodes].sort((a, b) => (a.order || 0) - (b.order || 0));
+  const routeIds = rawRouteNodes.map((node) => String(node.id));
+  const routeIdSet = new Set(routeIds);
+  const completedCount = Math.max(
+    0,
+    Math.min(routeOrdered.length, Number.isFinite(Number(guideProgress.currentStep))
+      ? Number(guideProgress.currentStep)
+      : 0)
+  );
 
   context.save();
   context.strokeStyle = 'var(--edge)';
@@ -139,12 +159,27 @@ function draw() {
   nodes.forEach((node) => {
     const isInRoute = routeIdSet.has(String(node.id));
     const position = toScreen(node);
+    const routeIndex = isInRoute ? routeIds.indexOf(String(node.id)) : -1;
+    const isCompleted = isInRoute && routeIndex >= 0 && routeIndex < completedCount;
+    const isCurrent = isInRoute && routeIndex === completedCount && completedCount < routeOrdered.length;
     const radius = Math.max(5, Number(node.size || 14) * 0.5);
 
     context.beginPath();
-    context.fillStyle = isInRoute ? 'var(--node-route)' : 'var(--node)';
-    context.strokeStyle = isInRoute ? 'rgba(180,255,180,0.95)' : 'rgba(255,255,255,0.38)';
-    context.lineWidth = isInRoute ? 2 : 1;
+    context.fillStyle = isCurrent
+      ? 'var(--node-current)'
+      : isCompleted
+        ? 'var(--node-complete)'
+        : isInRoute
+          ? 'var(--node-route)'
+          : 'var(--node)';
+    context.strokeStyle = isCurrent
+      ? 'rgba(255, 202, 58, 0.95)'
+      : isCompleted
+        ? 'rgba(124, 248, 128, 0.95)'
+        : isInRoute
+          ? 'rgba(180,255,180,0.95)'
+          : 'rgba(255,255,255,0.38)';
+    context.lineWidth = isCurrent ? 2.8 : isInRoute ? 2 : 1;
     context.arc(position.x, position.y, radius, 0, Math.PI * 2);
     context.fill();
     context.stroke();
@@ -163,7 +198,13 @@ function draw() {
     const radius = Math.max(7, Number(treeNode.size || 14) * 0.6);
     const label = `#${index + 1}`;
     context.beginPath();
-    context.fillStyle = index === 0 ? 'var(--node-current)' : 'var(--node-active)';
+    const isCurrent = index === completedCount && completedCount < routeOrdered.length;
+    const isCompleted = index < completedCount;
+    context.fillStyle = isCurrent
+      ? 'var(--node-current)'
+      : isCompleted
+        ? 'var(--node-complete)'
+        : 'var(--node-active)';
     context.arc(position.x, position.y, radius + 4, 0, Math.PI * 2);
     context.fill();
     context.stroke();

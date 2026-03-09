@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addGuide: (payload) => ipcRenderer.invoke('app:add-guide', payload),
   getGuides: () => ipcRenderer.invoke('app:get-guides'),
   selectGuide: (guideId) => ipcRenderer.invoke('app:select-guide', guideId),
+  advanceGuideStep: (guideId) => ipcRenderer.invoke('app:advance-guide-step', guideId),
+  resetGuideProgress: (guideId) => ipcRenderer.invoke('app:reset-guide-progress', guideId),
   deleteGuide: (guideId) => ipcRenderer.invoke('app:delete-guide', guideId),
   updateOverlay: (payload) => ipcRenderer.invoke('overlay:update-mapping', payload),
   onStateUpdate: (callback) => {
@@ -19,4 +21,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('overlay:update', (_event, data) => callback(data));
   },
 });
-
